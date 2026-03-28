@@ -1,0 +1,98 @@
+body {
+    font-family: 'Pretendard', sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background-color: #f4f6f8;
+    margin: 0;
+}
+
+.list-container {
+    background: white;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    width: 350px;
+}
+
+h2 {
+    text-align: center;
+    color: #333;
+    margin-top: 0;
+}
+
+.input-area {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+#itemInput {
+    flex: 1;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    outline: none;
+}
+
+#itemInput:focus {
+    border-color: #ff7710;
+}
+
+#addButton {
+    padding: 10px 15px;
+    background-color: #ff7710;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+#addButton:hover {
+    background-color: #e66a0c;
+}
+
+ul {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+}
+
+li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 10px;
+    border-bottom: 1px solid #eee;
+    transition: background-color 0.2s;
+}
+
+li:last-child {
+    border-bottom: none;
+}
+
+.item-text {
+    cursor: pointer;
+    flex: 1;
+}
+
+.done .item-text {
+    text-decoration: line-through;
+    color: #aaa;
+}
+
+.delete-btn {
+    background-color: #ff4d4d;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+}
+
+.delete-btn:hover {
+    background-color: #e60000;
+}
