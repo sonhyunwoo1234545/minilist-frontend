@@ -2,77 +2,150 @@
 const itemInput = document.querySelector('#itemInput');
 const addButton = document.querySelector('#addButton');
 const itemList = document.querySelector('#itemList');
+const filterArea = document.querySelector('#filterArea');
 
-// 2. 입력값 가져오기 함수
+// 2. 데이터 상태 관리 (배열)
+let todos = []; 
+let currentFilter = 'all';
+
+// 입력값 가져오기 및 공백 검증
 function getInputValue() {
     return itemInput.value.trim();
 }
 
-// 3. 리스트 항목 생성 함수
-function createListItem(text) {
+// Promise를 활용한 지연 함수
+function delayRender(ms) {
+    return new Promise(function(resolve) {
+        setTimeout(resolve, ms);
+    });
+}
+
+// 필터링 로직 (배열 메서드 filter 활용)
+function filterItems() {
+    if (currentFilter === 'done') {
+        return todos.filter(function(todo) { return todo.done === true; });
+    }
+    if (currentFilter === 'active') {
+        return todos.filter(function(todo) { return todo.done === false; });
+    }
+    return todos;
+}
+
+// 요소 생성 및 추가 (innerHTML 금지)
+function createListItem(todo) {
     const li = document.createElement('li');
+    li.dataset.id = todo.id; // 이벤트 식별을 위한 고유 ID 부여
     
-    // 텍스트를 담을 span 요소
+    if (todo.done) {
+        li.classList.add('done');
+    }
+    
     const span = document.createElement('span');
-    span.textContent = text;
+    span.textContent = todo.text;
     span.className = 'item-text';
     
-    // 삭제 버튼 생성
     const deleteBtn = document.createElement('button');
     deleteBtn.textContent = '삭제';
     deleteBtn.className = 'delete-btn';
     
-    // li 요소에 자식으로 추가
     li.appendChild(span);
     li.appendChild(deleteBtn);
     
     return li;
 }
 
-// 4. 항목 추가 함수
-function addItem() {
+// 화면 렌더링 (데이터 기반 렌더링)
+function renderList() {
+    // innerHTML = '' 대신 while문으로 기존 노드 안전하게 삭제
+    while (itemList.firstChild) {
+        itemList.removeChild(itemList.firstChild);
+    }
+    
+    const filteredTodos = filterItems();
+    
+    filteredTodos.forEach(function(todo) {
+        const newItem = createListItem(todo);
+        itemList.appendChild(newItem);
+    });
+}
+
+// 비동기 흐름이 적용된 항목 추가 (async/await)
+async function addItem() {
     const text = getInputValue();
     
-    // 공백만 입력된 경우 방지
     if (text === '') {
         alert('할 일을 입력해주세요.');
         return;
     }
     
-    // 새로운 항목 생성 및 리스트에 추가
-    const newItem = createListItem(text);
-    itemList.appendChild(newItem);
+    // 버튼 비활성화 (UX 개선)
+    addButton.disabled = true;
+    addButton.textContent = '처리 중...';
+    
+    // Promise 지연 대기 (0.5초)
+    await delayRender(500); 
+    
+    const newTodo = {
+        id: Date.now(),
+        text: text,
+        done: false
+    };
+    
+    todos.push(newTodo);
+    renderList();
     
     // 입력창 초기화
     itemInput.value = '';
     itemInput.focus();
+    addButton.disabled = false;
+    addButton.textContent = '추가';
 }
 
-// 5. 클릭 이벤트 처리 함수 (이벤트 위임 활용)
+// 리스트 클릭 이벤트 처리 (이벤트 위임)
 function handleListClick(event) {
     const target = event.target;
+    const li = target.parentElement;
     
-    // 클릭된 요소가 삭제 버튼일 경우
+    if (!li.dataset.id) return;
+    const id = Number(li.dataset.id); 
+    
     if (target.classList.contains('delete-btn')) {
-        const li = target.parentElement;
-        itemList.removeChild(li);
+        // filter를 통해 삭제할 항목 제외
+        todos = todos.filter(function(todo) { return todo.id !== id; });
+        renderList();
     } 
-    // 클릭된 요소가 할 일 텍스트일 경우 (상태 변경)
     else if (target.classList.contains('item-text')) {
-        const li = target.parentElement;
-        li.classList.toggle('done');
+        // find를 통해 상태 변경할 항목 검색
+        const todo = todos.find(function(t) { return t.id === id; });
+        if (todo) {
+            todo.done = !todo.done;
+        }
+        renderList();
     }
 }
 
-// 6. 이벤트 리스너 등록
-addButton.addEventListener('click', addItem);
+// 필터 버튼 클릭 이벤트 처리 (이벤트 위임)
+function handleFilterClick(event) {
+    const target = event.target;
+    
+    if (!target.classList.contains('filter-btn')) return;
+    
+    document.querySelectorAll('.filter-btn').forEach(function(btn) {
+        btn.classList.remove('active');
+    });
+    target.classList.add('active');
+    
+    currentFilter = target.dataset.filter;
+    renderList();
+}
 
-// 엔터 키 이벤트 (선택 사항)
+// 이벤트 리스너 등록
+addButton.addEventListener('click', addItem);
+itemList.addEventListener('click', handleListClick);
+filterArea.addEventListener('click', handleFilterClick);
+
 itemInput.addEventListener('keypress', function(event) {
     if (event.key === 'Enter') {
         addItem();
     }
 });
-
-// 이벤트 위임
-itemList.addEventListener('click', handleListClick);
